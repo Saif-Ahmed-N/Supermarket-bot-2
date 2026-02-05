@@ -127,27 +127,43 @@ export const useChatLogic = (user) => {
       recognition.start();
   };
 
-  // --- 3. RECIPE HANDLER ---
-  const handleRecipeAdd = (recipe) => {
+  // --- 3. RECIPE HANDLER (Updated for Dynamic Servings) ---
+  const handleRecipeAdd = (recipe, servings = 2) => {
       let count = 0;
-      recipe.ingredients.forEach(ingName => {
-          const product = PRODUCT_DB.find(p => p.baseName.toLowerCase().includes(ingName.toLowerCase()));
+      let addedNames = [];
+
+      recipe.ingredients.forEach(ing => {
+          // 1. Find product matching the ingredient keyword
+          // We search for the "Base Name" first (e.g. "Pasta")
+          const product = PRODUCT_DB.find(p => p.name.includes(ing.searchTerm) || p.baseName.includes(ing.searchTerm));
+          
           if (product) {
+              // 2. Calculate Quantity
+              // Formula: (Qty per serving * Total Servings). Rounded up to nearest whole pack.
+              // Example: 0.3kg chicken * 4 people = 1.2kg. If pack is 1kg, we need 2 packs.
+              // For simplicity in this demo, we assume 1 pack = 1 unit of calculation roughly.
+              
+              const requiredQty = Math.ceil(ing.qtyPerServing * servings);
+              
               const variantId = `${product.id}-${product.selectedWeight || 'std'}`;
               const existing = cart.find(c => `${c.id}-${c.selectedWeight || 'std'}` === variantId);
-              const qty = existing ? existing.quantity + 1 : 1;
-              updateQuantity(product, qty);
-              count++;
+              const currentQty = existing ? existing.quantity : 0;
+              
+              updateQuantity(product, currentQty + requiredQty);
+              count += requiredQty;
+              addedNames.push(product.baseName);
           }
       });
       
-      showToast(`Added ${count} items for ${recipe.name}`, 'success');
-      addMsg('bot', `The ingredients for ${recipe.name} have been added to your cart.`, 'text');
+      const uniqueNames = [...new Set(addedNames)].slice(0, 3).join(', ');
+      
+      showToast(`Added ingredients for ${servings} people`, 'success');
+      addMsg('bot', `I've added items for ${servings} servings of ${recipe.name} (${uniqueNames}...).`, 'text');
       
       setTimeout(() => {
-          addMsg('bot', 'How would you like to proceed?', 'options', [
-              {id: 'checkout_now', label: 'Proceed to Checkout'}, 
-              {id: 'fresh_start', label: 'Continue Shopping'}
+          addMsg('bot', 'Would you like to customize the quantities or proceed?', 'options', [
+              {id: 'view_cart', label: 'Review Cart', action: 'View Cart'}, 
+              {id: 'fresh_start', label: 'Shop More'}
           ]);
       }, 600);
   };
