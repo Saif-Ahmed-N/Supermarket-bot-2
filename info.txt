@@ -1,4 +1,0 @@
-terminal 1:
-
-cd supermarket-bot
-npm run dev
