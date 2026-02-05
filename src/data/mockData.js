@@ -4,7 +4,27 @@ import { generateCatalog } from './masterCatalog';
 // --- 1. GENERATE MASSIVE DB ---
 export const PRODUCT_DB = generateCatalog();
 
-// --- 2. SMART RECIPES (With Serving Logic) ---
+// --- 2. FIX HISTORY (Ensure Variety) ---
+// We purposely pick 1 item from each distinct category to force variety in the "Reorder" widget
+// This prevents the "only milk" issue by scanning the whole DB for unique categories.
+const distinctCategories = [...new Set(PRODUCT_DB.map(p => p.category))].slice(0, 8);
+
+export const SARAH_HISTORY = distinctCategories.map(cat => {
+    // Find the first product in this category
+    const product = PRODUCT_DB.find(p => p.category === cat);
+    // Return it with a quantity of 1, defaulting to a safety object if undefined
+    return product ? { ...product, quantity: 1 } : null;
+}).filter(item => item !== null); // Filter out any nulls if categories < 8
+
+// --- 3. DAILY ESSENTIALS (Curated List) ---
+// Picks specific high-frequency items for the top widget
+export const DAILY_ESSENTIALS = PRODUCT_DB.filter(p => 
+    (p.category === 'dairy' && p.baseName.includes('Milk')) || 
+    (p.category === 'produce' && p.baseName.includes('Banana')) ||
+    (p.category === 'bakery' && p.baseName.includes('Bread'))
+).slice(0, 5);
+
+// --- 4. SMART RECIPES (With Serving Logic) ---
 export const RECIPES = [
     {
         id: 'pasta_kit',
@@ -121,7 +141,7 @@ export const RECIPES = [
     }
 ];
 
-// --- 3. CATEGORY METADATA (Expanded to 10 Categories) ---
+// --- 5. CATEGORY METADATA (Expanded to 10 Categories) ---
 export const CATEGORIES = [
   { id: 'dairy', label: 'Fresh Dairy', img: 'https://images.unsplash.com/photo-1628191010210-a59de33e5941?auto=format&fit=crop&w=500&q=80', aisle: 'Aisle 1' },
   { id: 'produce', label: 'Fresh Produce', img: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&w=500&q=80', aisle: 'Aisle 2' },
@@ -134,6 +154,3 @@ export const CATEGORIES = [
   { id: 'household', label: 'Household', img: 'https://images.unsplash.com/photo-1563453392212-326f5e854473?auto=format&fit=crop&w=500&q=80', aisle: 'Aisle 10' },
   { id: 'personal', label: 'Personal Care', img: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&w=500&q=80', aisle: 'Aisle 11' },
 ];
-
-export const SARAH_HISTORY = PRODUCT_DB.slice(0, 8).map(i => ({...i, quantity: 1}));
-export const DAILY_ESSENTIALS = PRODUCT_DB.filter(p => p.category === 'dairy' || p.category === 'produce').slice(0, 5);
