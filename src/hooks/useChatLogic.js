@@ -28,8 +28,8 @@ export const useChatLogic = (user) => {
       });
   };
 
-  // --- 1. CORE: SINGLE ITEM ADD LOGIC ---
-  const processSingleItemAdd = (rawCommandStr) => {
+  // --- 1. CORE: SINGLE ITEM ADD LOGIC (ASYNC READY) ---
+  const processSingleItemAdd = async (rawCommandStr) => {
       // 1. Pre-process: Convert "two" -> "2"
       let processingStr = convertWordsToNumbers(rawCommandStr.trim());
 
@@ -75,7 +75,7 @@ export const useChatLogic = (user) => {
           .replace(/\s+/g, ' ')
           .trim();
       
-      // 5. Search Database
+      // 5. Search Database (Future: Replace with await fetch('/api/search'))
       const tokens = cleanQuery.split(/\s+/).filter(t => t.length > 1);
       
       const matches = PRODUCT_DB.filter(p => {
@@ -272,7 +272,7 @@ export const useChatLogic = (user) => {
             setTimeout(() => {
                 const orderId = Math.floor(Math.random() * 9000) + 1000;
                 addMsg('bot', `🎉 Order Placed Successfully!`, 'text');
-                addMsg('bot', `Your Order ID is #${orderId}. Thank you for shopping with FreshMart.`, 'text');
+                addMsg('bot', `Your Order ID is #${orderId}. Thank you for shopping with CosmoCart Mart.`, 'text');
                 clearCart(); 
             }, 600);
         }
@@ -289,18 +289,18 @@ export const useChatLogic = (user) => {
             setTimeout(() => addMsg('bot', 'How would you like to continue?', 'options', [{id: 'fresh_start', label: 'Back to Shopping'}]), 1000);
         }
         else if (option.id === 'support_call') {
-            addMsg('bot', '📞 Support Line: 1800-FRESH-MART (Available 9 AM - 9 PM)', 'text');
+            addMsg('bot', '📞 Support Line: 1800-COSMO-MART (Available 9 AM - 9 PM)', 'text');
         }
 
     }, 600);
   };
 
-  // --- 6. NLP BRAIN ---
-  const processBotLogic = (text) => {
+  // --- 6. NLP BRAIN (ASYNC READY) ---
+  const processBotLogic = async (text) => {
     let lower = text.toLowerCase().trim();
     setIsTyping(true);
 
-    setTimeout(() => {
+    setTimeout(async () => {
       setIsTyping(false);
 
       // A. IN-STORE NAVIGATION
@@ -370,18 +370,18 @@ export const useChatLogic = (user) => {
           let successCount = 0;
           let failedQueries = [];
 
-          commands.forEach(subCommand => {
+          // Use for...of loop to handle async sequential processing
+          for (let subCommand of commands) {
               if(!subCommand.includes('add') && !subCommand.includes('buy') && !subCommand.includes('get')) subCommand = "add " + subCommand;
               
-              const result = processSingleItemAdd(subCommand);
+              const result = await processSingleItemAdd(subCommand);
               if(result.success) {
                   successCount++;
                   showToast(`Added ${result.qty}x ${result.name}`, 'success');
               } else {
-                  // Only report failure if query is substantial
                   if(result.query.length > 2) failedQueries.push(result.query);
               }
-          });
+          }
 
           if(successCount > 0) {
               addMsg('bot', `✅ ${successCount} item(s) have been added to your cart.`, 'text');

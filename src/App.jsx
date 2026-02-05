@@ -280,7 +280,7 @@ const LoginScreen = ({ onLogin }) => {
   return (
     <div className="flex-1 flex flex-col items-center justify-center bg-slate-50 relative">
       <div className="w-full max-w-md bg-white p-10 rounded-2xl shadow-xl border border-slate-200">
-        <div className="mb-8 text-center"><div className="w-16 h-16 bg-blue-700 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg"><Sparkles size={32} className="text-white" /></div><h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">FreshMart Kiosk</h1><p className="text-slate-500 mt-2 font-medium">Please authenticate to continue</p></div>
+        <div className="mb-8 text-center"><div className="w-16 h-16 bg-blue-700 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg"><Sparkles size={32} className="text-white" /></div><h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">CosmoCart Mart</h1><p className="text-slate-500 mt-2 font-medium">Please authenticate to continue</p></div>
         <div className="space-y-5"><input className="w-full bg-slate-50 border border-slate-300 p-4 rounded-lg outline-none focus:border-blue-600 font-semibold text-slate-900" placeholder="First Name (e.g. Sarah)" value={name} onChange={e => setName(e.target.value)} /><input className="w-full bg-slate-50 border border-slate-300 p-4 rounded-lg outline-none focus:border-blue-600 font-semibold text-slate-900" placeholder="Member ID (e.g. 101)" value={id} onChange={e => setId(e.target.value)} /><button onClick={() => onLogin(name, id)} className="w-full py-4 bg-blue-700 text-white rounded-lg font-bold text-lg shadow-lg hover:bg-blue-800 transition-all flex items-center justify-center gap-2">Access Dashboard <ArrowRight size={20} /></button></div>
         <div className="mt-8 pt-6 border-t border-slate-100 flex justify-center"><span className="px-3 py-1 bg-slate-100 rounded text-xs font-mono text-slate-500 font-medium">DEMO: Sarah / 101</span></div>
       </div>
@@ -307,7 +307,7 @@ const ChatView = ({ user, onLogout }) => {
         <div className="flex items-center gap-4">
             <div className="w-10 h-10 bg-blue-700 rounded-lg flex items-center justify-center text-white shadow-md"><Sparkles size={20} /></div>
             <div>
-                <h1 className="font-extrabold text-xl text-slate-900 leading-tight">FreshMart</h1>
+                <h1 className="font-extrabold text-xl text-slate-900 leading-tight">CosmoCart Mart</h1>
                 <button onClick={() => setDietMode(dietMode === 'all' ? 'veg' : 'all')} className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 transition-all ${dietMode === 'veg' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-slate-100 text-slate-500'}`}><Leaf size={10}/> {dietMode === 'veg' ? 'VEG ONLY' : 'ALL ITEMS'}</button>
             </div>
         </div>
