@@ -24,3 +24,11 @@ dist-ssr
 *.sw?
 
 ../info.txt
+password.txt
+
+# Python
+venv/
+__pycache__/
+*.pyc
+.env
+info.txt
