@@ -253,11 +253,21 @@ export const useChatLogic = (user, dynamicCategories = []) => {
             }
 
             // E. MANIFEST REVIEW
-            else if (option.id === 'pickup' || option.id === 'delivery') {
+            else if (option.id === 'pickup') {
                 setIsCartOpen(false);
-                const mode = option.id === 'pickup' ? 'Store Pickup' : 'Home Delivery';
-                const details = option.id === 'pickup' ? 'Counter 4' : '12/B Green Valley, Chennai';
+                const mode = 'Store Pickup';
+                const details = 'Counter 4';
                 addMsg('bot', 'Please review your final order manifest:', 'order_summary', { mode, details, items: cart, total: cartTotal });
+            }
+            else if (option.id === 'delivery') {
+                setIsCartOpen(false);
+                addMsg('bot', 'Please provide your delivery details:', 'delivery_form', { name: user.name || '', address: '', mobile: '', altMobile: '' });
+            }
+            else if (option.id === 'submit_delivery') {
+                const { name, address, mobile, altMobile } = option.data;
+                const mode = 'Home Delivery';
+                const details = `${name} | M: ${mobile} | Alt: ${altMobile} | ${address}`;
+                addMsg('bot', 'Excellent! Here is your final order manifest:', 'order_summary', { mode, details, items: cart, total: cartTotal });
             }
 
             // F. FINAL CONFIRMATION

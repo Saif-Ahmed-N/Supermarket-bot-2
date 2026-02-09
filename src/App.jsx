@@ -391,6 +391,79 @@ const ChatView = ({ user, onLogout }) => {
                             {msg.type === 'comparison_card' && <ComparisonWidget products={msg.data} />}
                             {msg.type === 'order_preview' && <OrderPreviewTable initialItems={msg.data} onConfirm={handleTableConfirm} />}
                             {msg.type === 'order_summary' && <OrderSummaryCard data={msg.data} onConfirm={() => handleOptionSelect({ id: 'confirm_order', label: 'Confirming...' })} onAbort={() => handleOptionSelect({ id: 'abort_order', label: 'Edit Order' })} />}
+                            {msg.type === 'delivery_form' && (
+                                <div className="bg-white border border-purple-200 rounded-xl p-6 mt-4 w-full max-w-md shadow-lg ring-1 ring-black/5">
+                                    <div className="flex items-center gap-3 mb-4 text-purple-900">
+                                        <Truck size={24} className="text-purple-600" />
+                                        <h3 className="font-bold text-lg uppercase tracking-wide">Delivery Details</h3>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-xs font-bold text-purple-500 uppercase mb-1 ml-1">Full Name</label>
+                                            <input
+                                                id="delivery-name"
+                                                className="w-full bg-purple-50 border border-purple-100 p-3 rounded-lg outline-none focus:border-purple-600 font-semibold text-purple-900"
+                                                placeholder="Enter recipient name"
+                                                defaultValue={msg.data.name}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-purple-500 uppercase mb-1 ml-1">Mobile Number (10 Digits)</label>
+                                            <input
+                                                id="delivery-mobile"
+                                                type="tel"
+                                                maxLength="10"
+                                                className="w-full bg-purple-50 border border-purple-100 p-3 rounded-lg outline-none focus:border-purple-600 font-semibold text-purple-900"
+                                                placeholder="Enter 10-digit mobile"
+                                                defaultValue={msg.data.mobile}
+                                                onKeyPress={(e) => !/[0-9]/.test(e.key) && e.preventDefault()}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-purple-500 uppercase mb-1 ml-1">Alternate Mobile (10 Digits)</label>
+                                            <input
+                                                id="delivery-alt-mobile"
+                                                type="tel"
+                                                maxLength="10"
+                                                className="w-full bg-purple-50 border border-purple-100 p-3 rounded-lg outline-none focus:border-purple-600 font-semibold text-purple-900"
+                                                placeholder="Enter alternate 10-digit mobile"
+                                                defaultValue={msg.data.altMobile}
+                                                onKeyPress={(e) => !/[0-9]/.test(e.key) && e.preventDefault()}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-purple-500 uppercase mb-1 ml-1">Delivery Address</label>
+                                            <textarea
+                                                id="delivery-address"
+                                                className="w-full bg-purple-50 border border-purple-100 p-3 rounded-lg outline-none focus:border-purple-600 font-semibold text-purple-900 h-24 resize-none"
+                                                placeholder="Enter full street address"
+                                                defaultValue={msg.data.address}
+                                            />
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                const name = document.getElementById('delivery-name').value;
+                                                const mobile = document.getElementById('delivery-mobile').value;
+                                                const altMobile = document.getElementById('delivery-alt-mobile').value;
+                                                const address = document.getElementById('delivery-address').value;
+
+                                                if (!name || !mobile || !altMobile || !address) return alert('Please fill all fields');
+                                                if (!/^\d{10}$/.test(mobile)) return alert('Mobile number must be exactly 10 digits');
+                                                if (!/^\d{10}$/.test(altMobile)) return alert('Alternate mobile number must be exactly 10 digits');
+
+                                                handleOptionSelect({
+                                                    id: 'submit_delivery',
+                                                    label: 'Submit Delivery Details',
+                                                    data: { name, mobile, altMobile, address }
+                                                });
+                                            }}
+                                            className="w-full py-4 bg-purple-900 text-white rounded-xl font-bold text-lg shadow-lg hover:bg-purple-800 transition-all flex items-center justify-center gap-2 active:scale-95"
+                                        >
+                                            Confirm Address <ArrowRight size={20} />
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                             {msg.type === 'recipe_list' && <div className="mt-4 w-full flex gap-4 overflow-x-auto pb-4 px-1 scrollbar-hide">{msg.data.map(recipe => <RecipeCard key={recipe.id} recipe={recipe} onAdd={handleRecipeAdd} />)}</div>}
                             {msg.type === 'options' && <div className="flex flex-wrap gap-2 mt-3">{msg.data.map(opt => <button key={opt.id} onClick={() => handleOptionSelect(opt)} className="px-6 py-3 bg-white border-2 border-purple-100 rounded-xl text-sm font-bold text-purple-800 hover:border-purple-600 hover:text-purple-900 hover:shadow-md transition-all active:scale-[0.98]">{opt.label}</button>)}</div>}
                             {msg.type === 'carousel' && <div className="mt-4 w-full flex gap-4 overflow-x-auto pb-4 px-1 scrollbar-hide">{msg.data.map(p => <ProductCard key={p.id} product={p} />)}</div>}
