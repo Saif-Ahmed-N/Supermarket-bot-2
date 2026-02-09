@@ -28,7 +28,9 @@ password.txt
 
 # Python
 venv/
+.venv/
 __pycache__/
 *.pyc
 .env
+*.db
 info.txt
