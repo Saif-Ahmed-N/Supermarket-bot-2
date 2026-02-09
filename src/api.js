@@ -10,9 +10,13 @@ const mapProduct = (p) => ({
     originalPrice: p.market_price,
     image: p.image_url || ('https://placehold.co/400?text=' + encodeURIComponent(p.category)),
     isVeg: p.is_veg !== false, // Default to true if null/undefined
-    rating: p.rating,
+    rating: p.rating || 4.5, // Default rating
     description: p.description,
-    brand: p.brand
+    unitType: p.unit_type,
+    brand: p.brand,
+    perUnitSellingPrice: p.sale_price,
+    perUnitOriginalPrice: p.market_price,
+    discount: p.market_price > p.sale_price ? Math.round(((p.market_price - p.sale_price) / p.market_price) * 100) : 0
 });
 
 export const api = {
