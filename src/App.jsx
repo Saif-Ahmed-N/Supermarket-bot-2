@@ -408,7 +408,9 @@ const ChatView = ({ user, onLogout }) => {
                                     </div>
                                     <div className="space-y-4">
                                         <div>
-                                            <label className="block text-xs font-bold text-purple-500 uppercase mb-1 ml-1">Full Name</label>
+                                            <label className="block text-xs font-bold text-purple-500 uppercase mb-1 ml-1 flex items-center gap-1">
+                                                Full Name <span className="text-red-500">*</span>
+                                            </label>
                                             <input
                                                 id="delivery-name"
                                                 className="w-full bg-purple-50 border border-purple-100 p-3 rounded-lg outline-none focus:border-purple-600 font-semibold text-purple-900"
@@ -417,7 +419,9 @@ const ChatView = ({ user, onLogout }) => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold text-purple-500 uppercase mb-1 ml-1">Mobile Number (10 Digits)</label>
+                                            <label className="block text-xs font-bold text-purple-500 uppercase mb-1 ml-1 flex items-center gap-1">
+                                                Mobile Number (10 Digits) <span className="text-red-500">*</span>
+                                            </label>
                                             <input
                                                 id="delivery-mobile"
                                                 type="tel"
@@ -429,7 +433,9 @@ const ChatView = ({ user, onLogout }) => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold text-purple-500 uppercase mb-1 ml-1">Alternate Mobile (10 Digits)</label>
+                                            <label className="block text-xs font-bold text-purple-500 uppercase mb-1 ml-1 flex items-center gap-1">
+                                                Alternate Mobile (10 Digits) <span className="text-red-500">*</span>
+                                            </label>
                                             <input
                                                 id="delivery-alt-mobile"
                                                 type="tel"
@@ -441,7 +447,9 @@ const ChatView = ({ user, onLogout }) => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold text-purple-500 uppercase mb-1 ml-1">Delivery Address</label>
+                                            <label className="block text-xs font-bold text-purple-500 uppercase mb-1 ml-1 flex items-center gap-1">
+                                                Delivery Address <span className="text-red-500">*</span>
+                                            </label>
                                             <textarea
                                                 id="delivery-address"
                                                 className="w-full bg-purple-50 border border-purple-100 p-3 rounded-lg outline-none focus:border-purple-600 font-semibold text-purple-900 h-24 resize-none"
@@ -451,12 +459,16 @@ const ChatView = ({ user, onLogout }) => {
                                         </div>
                                         <button
                                             onClick={() => {
-                                                const name = document.getElementById('delivery-name').value;
-                                                const mobile = document.getElementById('delivery-mobile').value;
-                                                const altMobile = document.getElementById('delivery-alt-mobile').value;
-                                                const address = document.getElementById('delivery-address').value;
+                                                const name = document.getElementById('delivery-name').value.trim();
+                                                const mobile = document.getElementById('delivery-mobile').value.trim();
+                                                const altMobile = document.getElementById('delivery-alt-mobile').value.trim();
+                                                const address = document.getElementById('delivery-address').value.trim();
 
-                                                if (!name || !mobile || !altMobile || !address) return alert('Please fill all fields');
+                                                if (!name) return alert('Please enter recipient name');
+                                                if (!mobile) return alert('Please enter mobile number');
+                                                if (!altMobile) return alert('Please enter alternate mobile number');
+                                                if (!address) return alert('Please provide a delivery address to proceed');
+
                                                 if (!/^\d{10}$/.test(mobile)) return alert('Mobile number must be exactly 10 digits');
                                                 if (!/^\d{10}$/.test(altMobile)) return alert('Alternate mobile number must be exactly 10 digits');
 
@@ -476,7 +488,23 @@ const ChatView = ({ user, onLogout }) => {
                             {msg.type === 'recipe_list' && <div className="mt-4 w-full flex gap-4 overflow-x-auto pb-4 px-1 scrollbar-hide">{msg.data.map(recipe => <RecipeCard key={recipe.id} recipe={recipe} onAdd={handleRecipeAdd} />)}</div>}
                             {msg.type === 'options' && <div className="flex flex-wrap gap-2 mt-3">{msg.data.map(opt => <button key={opt.id} onClick={() => handleOptionSelect(opt)} className="px-6 py-3 bg-white border-2 border-purple-100 rounded-xl text-sm font-bold text-purple-800 hover:border-purple-600 hover:text-purple-900 hover:shadow-md transition-all active:scale-[0.98]">{opt.label}</button>)}</div>}
                             {msg.type === 'carousel' && <div className="mt-4 w-full flex gap-4 overflow-x-auto pb-4 px-1 scrollbar-hide">{msg.data.map(p => <ProductCard key={p.id} product={p} />)}</div>}
-                            {msg.type === 'grid' && <div className="grid grid-cols-4 gap-3 mt-4 w-full">{categories.map(c => <button key={c.id} onClick={() => onSend(`Show ${c.label}`)} className="group relative h-28 rounded-lg overflow-hidden bg-purple-200 shadow-sm border border-purple-200 hover:shadow-md hover:border-fuchsia-400 transition-all"><SafeImage src={c.img} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90" /><div className="absolute inset-0 bg-gradient-to-t from-purple-900/90 via-purple-900/20 to-transparent" /><span className="absolute bottom-3 left-3 text-white font-bold text-sm tracking-wide shadow-black/50 drop-shadow-md">{c.label}</span></button>)}</div>}
+                            {msg.type === 'grid' && <div className="grid grid-cols-5 gap-x-3 gap-y-5 mt-4 w-full px-1">{categories.map(c => <button key={c.id} onClick={() => onSend(`Show ${c.label}`)} className="flex flex-col items-center gap-2 group active:scale-95 transition-all"><div className="w-16 h-16 rounded-2xl overflow-hidden bg-purple-50 border border-purple-100 shadow-sm group-hover:shadow-md group-hover:border-purple-400 transition-all flex items-center justify-center p-0.5"><SafeImage src={c.img} className="w-full h-full object-cover rounded-xl group-hover:scale-110 transition-transform duration-700" /></div><span className="text-[10px] font-bold text-purple-900 text-center leading-tight h-6 flex items-start justify-center overflow-hidden">{c.label}</span></button>)}</div>}
+                            {msg.type === 'sub_carousel' && (
+                                <div className="mt-4 w-full flex gap-3 overflow-x-auto pb-4 px-1 scrollbar-hide">
+                                    {msg.data.map(c => (
+                                        <button
+                                            key={c.id}
+                                            onClick={() => onSend(c.command)}
+                                            className="flex-shrink-0 w-32 h-36 rounded-2xl bg-white border border-purple-100 shadow-sm hover:shadow-md hover:border-purple-400 transition-all flex flex-col items-center justify-center p-3 text-center gap-3 active:scale-95"
+                                        >
+                                            <div className="w-16 h-16 rounded-full overflow-hidden bg-purple-50 border border-purple-100 p-0.5 group-hover:bg-purple-100 transition-colors">
+                                                <SafeImage src={c.img} className="w-full h-full object-cover rounded-full" />
+                                            </div>
+                                            <span className="text-purple-900 font-bold text-[11px] leading-tight h-8 flex items-center">{c.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                             {msg.type === 'dashboard' && <DashboardWidget historyItems={msg.data.history} essentialItems={msg.data.essentials} />}
                         </div>
                     </div>

@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from typing import List, Optional
 from . import models, schemas, database
 
@@ -28,7 +29,14 @@ def read_root():
 def read_products(skip: int = 0, limit: int = 100, search: Optional[str] = None, category: Optional[str] = None, db: Session = Depends(database.get_db)):
     query = db.query(models.Product)
     if search:
-        query = query.filter(models.Product.product.ilike(f"%{search}%"))
+        # Support multi-keyword search (OR logic)
+        keywords = [k.strip() for k in search.split() if len(k.strip()) > 2]
+        if keywords:
+            conditions = [models.Product.product.ilike(f"%{k}%") for k in keywords]
+            query = query.filter(or_(*conditions))
+        else:
+            query = query.filter(models.Product.product.ilike(f"%{search}%"))
+            
     if category:
         query = query.filter(models.Product.category == category)
     

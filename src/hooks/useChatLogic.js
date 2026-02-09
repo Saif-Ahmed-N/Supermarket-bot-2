@@ -323,6 +323,84 @@ export const useChatLogic = (user, dynamicCategories = []) => {
         let lower = text.toLowerCase().trim();
         setIsTyping(true);
 
+        // Handle Sub-Category Selection (Strict Database Split)
+        if (text.startsWith('ShowSub ')) {
+            const cmdData = text.replace('ShowSub ', '');
+            const [parentCat, subLabel] = cmdData.split('|');
+
+            setTimeout(async () => {
+                setIsTyping(false);
+                addMsg('user', subLabel);
+
+                // 1. Fetch ALL products in the Parent Category from DB
+                const allCategoryProducts = await api.getProductsByCategory(parentCat);
+
+                // 2. Comprehensive Split Map
+                const masterSplitRules = {
+                    // Baby Care Section
+                    "Diapers & Wipes": ["diaper", "wipe", "rash", "mat", "bags"],
+                    "Bath, Skin & Hair Care": ["soap", "wash", "shampoo", "oil", "lotion", "powder", "sunscreen", "bath", "massage"],
+                    "Grooming & Hygiene": ["grooming", "nail", "brush", "comb", "toothpaste", "finger", "pacifier", "soother", "aspirator"],
+                    "Feeding & Nursing": ["feeding", "bottle", "nipple", "breast", "storage", "bib", "bowl", "plate", "spoon", "cup", "sterilizer"],
+                    "Baby Food & Nutrition": ["formula", "cereal", "weaning", "snacks", "mix", "toddler", "nutrition", "food"],
+                    "Toys & Learning": ["toy", "rattle", "teether", "play mat", "musical", "gym", "educational", "books"],
+                    "Baby Clothing & Accessories": ["clothing", "onesie", "bodysuit", "socks", "booties", "caps", "mittens", "swaddle", "blanket"],
+                    "Health & Safety": ["thermometer", "first aid", "teething", "mosquito", "guards", "locks", "monitor", "night light"],
+                    "Travel & Outdoor": ["stroller", "pram", "car seat", "carrier", "sling", "diaper bag", "travel"],
+                    "Organic & Eco-Friendly": ["organic", "natural", "eco", "biodegradable", "plant-based"],
+                    "Gift Packs & Combos": ["gift", "combo", "starter kit", "pack", "gift set"],
+                    "Essentials & Daily Needs": ["cotton", "buds", "tissue", "laundry", "detergent", "softener"],
+
+                    // Produce Section
+                    "Fresh Fruits": ["apple", "banana", "mango", "orange", "grapes", "pomegranate", "watermelon", "fruit", "pear", "plum"],
+                    "Fresh Vegetables": ["potato", "onion", "tomato", "carrot", "cucumber", "beans", "capsicum", "vegetable", "ginger", "garlic"],
+                    "Leafy Greens & Herbs": ["spinach", "coriander", "mint", "methi", "leafy", "greens", "palak", "dhaniya"],
+                    "Exotic Fruits": ["avocado", "kiwi", "dragon", "berry", "straw berry", "blue berry", "exotic"],
+                    "Exotic Vegetables": ["mushroom", "broccoli", "zucchini", "asparagus", "bell pepper", "purple cabbage"],
+                    "Organic Fruits & Vegetables": ["organic"],
+                    "Cut, Peeled & Sprouts": ["cut", "peeled", "sprout", "chopped"],
+                    "Seasonal Produce": ["seasonal"],
+                    "Frozen Fruits & Vegetables": ["frozen", "peas", "strawberry"],
+                    "Juices, Purees & Pulps": ["juice", "puree", "pulp", "smoothie"],
+                    "Dry Fruits & Nuts": ["almond", "cashew", "walnut", "raisin", "date", "apricot", "pistachio"],
+                    "Combo Packs & Value Deals": ["combo", "pack", "deal", "value", "box"],
+
+                    // Snacks & Branded Foods Section
+                    "Chips & Crisps": ["chips", "crisps", "lays", "pringle", "kurkure", "dorito", "nacho", "potato stick"],
+                    "Biscuits & Cookies": ["biscuit", "cookie", "oreo", "parle", "bourbon", "digestive", "marie", "hide & seek", "rusk"],
+                    "Namkeen & Savoury Snacks": ["namkeen", "bhujia", "savoury", "mixture", "dal moth", "gathiya", "haldiram", "bikaji", "sev"],
+                    "Chocolates & Candies": ["chocolate", "candy", "dairy milk", "kitkat", "munch", "5 star", "gems", "snickers", "mentos", "lollipop", "toblerone"],
+                    "Cakes, Muffins & Brownies": ["cake", "muffin", "brownie", "cupcake", "britannia cake", "bar cake", "choco pie"],
+                    "Wafers & Snack Bars": ["wafer", "snack bar", "granola", "energy bar", "chikki", "protein bar"],
+                    "Breakfast Cereals & Muesli": ["cereal", "muesli", "flakes", "oats", "chocos", "kellogg"],
+                    "Instant Noodles & Pasta": ["noodle", "pasta", "maggi", "yippee", "macaroni", "spaghetti", "indomie", "koka"],
+                    "Ready-to-Eat Foods": ["ready to eat", "ready-to-eat", "upma", "poha", "meal", "instant mix", "heat and eat", "mtr"],
+                    "Spreads, Dips & Sauces": ["spread", "dip", "sauce", "ketchup", "jam", "butter", "mayo", "honey", "nutella", "peanut butter"],
+                    "Healthy & Diet Snacks": ["healthy", "diet", "roasted", "sugar free", "fat free", "multigrain", "quinoa", "makhana"],
+                    "Kids Snacks": ["kids", "kinder", "toy", "gems", "milky bar", "fruit chew"]
+                };
+
+                // 3. Filter and Classify
+                const targetedProducts = allCategoryProducts.filter(product => {
+                    const name = product.name.toLowerCase();
+                    const keywords = masterSplitRules[subLabel] || [];
+
+                    // Logic: Match if any keyword matches name OR if subLabel itself matches
+                    const isKeywordMatch = keywords.some(k => name.includes(k.toLowerCase()));
+                    const isLabelMatch = name.includes(subLabel.toLowerCase());
+
+                    return (isKeywordMatch || isLabelMatch) && product.category === parentCat;
+                });
+
+                if (targetedProducts.length > 0) {
+                    addMsg('bot', `I've split the ${parentCat} inventory for ${subLabel}. Found ${targetedProducts.length} items:`, 'carousel', targetedProducts);
+                } else {
+                    addMsg('bot', `No matching items found for ${subLabel} in our ${parentCat} department. Try another section:`, 'sub_carousel', []);
+                }
+            }, 600);
+            return;
+        }
+
         setTimeout(async () => {
             setIsTyping(false);
 
@@ -382,6 +460,72 @@ export const useChatLogic = (user, dynamicCategories = []) => {
             );
 
             if (matchedCategory) {
+                const categoryName = matchedCategory.label.toLowerCase();
+
+                if (categoryName === 'baby care' || categoryName === 'fruits & vegetables' || categoryName === 'snacks & branded foods') {
+                    let subCats = [];
+                    let welcomeMsg = '';
+
+                    if (categoryName === 'baby care') {
+                        welcomeMsg = 'Select a Baby Care department:';
+                        subCats = [
+                            { label: "Diapers & Wipes", icon: "🍼", query: "diaper wipes rash cream changing mat" },
+                            { label: "Bath, Skin & Hair Care", icon: "🛁", query: "baby soap wash shampoo oil lotion powder" },
+                            { label: "Grooming & Hygiene", icon: "🧴", query: "grooming nail clipper brush comb toothpaste" },
+                            { label: "Feeding & Nursing", icon: "🍼", query: "feeding bottle nipple breast pump sippy cup" },
+                            { label: "Baby Food & Nutrition", icon: "🍚", query: "formula cereal baby food weaning nutrition" },
+                            { label: "Toys & Learning", icon: "🧸", query: "rattle teether toys play mat books" },
+                            { label: "Baby Clothing & Accessories", icon: "👕", query: "onesie bodysuit socks booties swaddle" },
+                            { label: "Health & Safety", icon: "🚼", query: "thermometer first aid mosquito safety monitor" },
+                            { label: "Travel & Outdoor", icon: "🎒", query: "stroller pram car seat carrier sling" },
+                            { label: "Organic & Eco-Friendly", icon: "🌿", query: "organic natural eco biodegradable" },
+                            { label: "Gift Packs & Combos", icon: "🎁", query: "gift combo starter pack shower" },
+                            { label: "Essentials & Daily Needs", icon: "📦", query: "cotton pad buds tissue laundry detergent" }
+                        ];
+                    } else if (categoryName === 'fruits & vegetables') {
+                        welcomeMsg = 'Select a Fruits & Vegetables section:';
+                        subCats = [
+                            { label: "Fresh Fruits", icon: "🍎", query: "apple banana mango orange grapes pomegranate watermelon" },
+                            { label: "Fresh Vegetables", icon: "🥦", query: "potato onion tomato carrot cucumber beans capsicum" },
+                            { label: "Leafy Greens & Herbs", icon: "🥬", query: "spinach coriander mint methi leafy" },
+                            { label: "Exotic Fruits", icon: "🥑", query: "avocado kiwi dragon fruit blue berry straw berry" },
+                            { label: "Exotic Vegetables", icon: "🍄", query: "mushroom broccoli zucchini asparagus" },
+                            { label: "Organic Fruits & Vegetables", icon: "🌿", query: "organic" },
+                            { label: "Cut, Peeled & Sprouts", icon: "🥗", query: "cut peeled sprout" },
+                            { label: "Seasonal Produce", icon: "📅", query: "seasonal" },
+                            { label: "Frozen Fruits & Vegetables", icon: "❄️", query: "frozen" },
+                            { label: "Juices, Purees & Pulps", icon: "🧃", query: "juice puree pulp smoothie" },
+                            { label: "Dry Fruits & Nuts", icon: "🥜", query: "almond cashew walnut raisin" },
+                            { label: "Combo Packs & Value Deals", icon: "📦", query: "combo pack deal value" }
+                        ];
+                    } else if (categoryName === 'snacks & branded foods') {
+                        welcomeMsg = 'Select a Snacks department:';
+                        subCats = [
+                            { label: "Chips & Crisps", icon: "🍟", query: "chips crisps lays" },
+                            { label: "Biscuits & Cookies", icon: "🍪", query: "biscuit cookie oreo" },
+                            { label: "Namkeen & Savoury Snacks", icon: "🥨", query: "namkeen savoury mixture haldiram" },
+                            { label: "Chocolates & Candies", icon: "🍫", query: "chocolate candy dairy milk kitkat" },
+                            { label: "Cakes, Muffins & Brownies", icon: "🍰", query: "cake muffin brownie" },
+                            { label: "Wafers & Snack Bars", icon: "🧇", query: "wafer snack bar energy bar" },
+                            { label: "Breakfast Cereals & Muesli", icon: "🥣", query: "cereal muesli flakes oats" },
+                            { label: "Instant Noodles & Pasta", icon: "🍜", query: "noodle pasta maggi" },
+                            { label: "Ready-to-Eat Foods", icon: "🍱", query: "ready to eat meal instant mix" },
+                            { label: "Spreads, Dips & Sauces", icon: "🥫", query: "spread dip sauce ketchup jam" },
+                            { label: "Healthy & Diet Snacks", icon: "🥗", query: "healthy diet roasted sugar free" },
+                            { label: "Kids Snacks", icon: "🧸", query: "kids gems milky bar" }
+                        ];
+                    }
+
+                    const formattedSubCats = subCats.map(item => ({
+                        id: item.label.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_'),
+                        label: `${item.icon} ${item.label}`,
+                        command: `ShowSub ${matchedCategory.label}|${item.label}`,
+                        img: `https://placehold.co/400?text=${encodeURIComponent(item.label)}`
+                    }));
+
+                    addMsg('bot', welcomeMsg, 'sub_carousel', formattedSubCats);
+                    return;
+                }
                 const productsInCategory = await api.getProductsByCategory(matchedCategory.label);
                 addMsg('bot', `Browsing ${matchedCategory.label}:`, 'carousel', productsInCategory);
                 return;

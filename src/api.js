@@ -23,7 +23,7 @@ export const api = {
     // 1. Search Products
     searchProducts: async (query) => {
         try {
-            const res = await fetch(`${BASE_URL}/products?search=${encodeURIComponent(query)}&limit=10`);
+            const res = await fetch(`${BASE_URL}/products?search=${encodeURIComponent(query)}&limit=50`);
             const data = await res.json();
             return data.map(mapProduct);
         } catch (e) {
@@ -35,7 +35,7 @@ export const api = {
     // 2. Get by Category
     getProductsByCategory: async (category) => {
         try {
-            const res = await fetch(`${BASE_URL}/products?category=${encodeURIComponent(category)}&limit=20`);
+            const res = await fetch(`${BASE_URL}/products?category=${encodeURIComponent(category)}&limit=500`);
             const data = await res.json();
             return data.map(mapProduct);
         } catch (e) {
