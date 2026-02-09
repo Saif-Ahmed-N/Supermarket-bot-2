@@ -278,6 +278,7 @@ export const useChatLogic = (user, dynamicCategories = []) => {
                     user_id: user.id || 'guest',
                     user_name: user.name || 'Guest',
                     total_amount: cartTotal,
+                    payment_method: option.payment_method || 'online',
                     items: cart.map(item => ({
                         product_id: item.id || item.index,
                         product_name: item.name || item.product,

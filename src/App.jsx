@@ -207,12 +207,17 @@ const OrderSummaryCard = ({ data, onConfirm, onAbort }) => {
                     <span className="text-2xl font-extrabold text-purple-900">₹{data.total.toLocaleString()}</span>
                 </div>
                 <div className="flex gap-3">
-                    <button onClick={onAbort} className="flex-1 py-3 border border-purple-300 rounded-lg text-purple-700 font-bold text-sm hover:bg-white hover:text-red-600 hover:border-red-200 transition-colors">
-                        Edit Order
+                    <button onClick={onAbort} className="w-1/4 py-3 border border-purple-300 rounded-lg text-purple-700 font-bold text-xs hover:bg-white hover:text-red-600 hover:border-red-200 transition-colors uppercase">
+                        Edit
                     </button>
-                    <button onClick={onConfirm} className="flex-1 py-3 bg-purple-700 text-white rounded-lg font-bold text-sm shadow-md hover:bg-purple-800 transition-transform active:scale-95 flex justify-center items-center gap-2">
-                        Confirm & Pay
-                    </button>
+                    <div className="flex-1 flex gap-2">
+                        <button onClick={() => onConfirm('online')} className="flex-1 py-3 bg-fuchsia-600 text-white rounded-lg font-bold text-[10px] shadow-md hover:bg-fuchsia-700 transition-transform active:scale-95 flex flex-col justify-center items-center gap-1 uppercase tracking-tighter">
+                            <Sparkles size={14} /> Confirm & Pay
+                        </button>
+                        <button onClick={() => onConfirm('cod')} className="flex-1 py-3 bg-purple-900 text-white rounded-lg font-bold text-[10px] shadow-md hover:bg-purple-950 transition-transform active:scale-95 flex flex-col justify-center items-center gap-1 uppercase tracking-tighter">
+                            <Truck size={14} /> Cash on Delivery
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -394,7 +399,7 @@ const ChatView = ({ user, onLogout }) => {
                             {msg.type === 'map_view' && <MapWidget data={msg.data} />}
                             {msg.type === 'comparison_card' && <ComparisonWidget products={msg.data} />}
                             {msg.type === 'order_preview' && <OrderPreviewTable initialItems={msg.data} onConfirm={handleTableConfirm} />}
-                            {msg.type === 'order_summary' && <OrderSummaryCard data={msg.data} onConfirm={() => handleOptionSelect({ id: 'confirm_order', label: 'Confirming...' })} onAbort={() => handleOptionSelect({ id: 'abort_order', label: 'Edit Order' })} />}
+                            {msg.type === 'order_summary' && <OrderSummaryCard data={msg.data} onConfirm={(method) => handleOptionSelect({ id: 'confirm_order', label: method === 'cod' ? 'Processing COD...' : 'Processing Payment...', payment_method: method })} onAbort={() => handleOptionSelect({ id: 'abort_order', label: 'Edit Order' })} />}
                             {msg.type === 'delivery_form' && (
                                 <div className="bg-white border border-purple-200 rounded-xl p-6 mt-4 w-full max-w-md shadow-lg ring-1 ring-black/5">
                                     <div className="flex items-center gap-3 mb-4 text-purple-900">
