@@ -9,6 +9,7 @@ import ProductCard from './components/widgets/ProductCard';
 import DashboardWidget from './components/widgets/DashboardWidget';
 // --- IMPORT LOGO ---
 import logo from './assets/cosmocartt_logo.png';
+import categoryImages from './assets/categories.json';
 import { User, Users } from 'lucide-react';
 
 // --- STYLES ---
@@ -326,11 +327,14 @@ const ChatView = ({ user, onLogout }) => {
     useEffect(() => {
         api.getCategories().then(cats => {
             // Map strings to object structure expected by UI
-            const formatted = cats.map(c => ({
-                id: c.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_'),
-                label: c,
-                img: `https://placehold.co/400?text=${encodeURIComponent(c)}`
-            }));
+            const formatted = cats.map(c => {
+                const match = categoryImages.find(img => img.name === c);
+                return {
+                    id: c.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_'),
+                    label: c,
+                    img: match ? match.image : `https://placehold.co/400?text=${encodeURIComponent(c)}`
+                };
+            });
             setCategories(formatted);
         });
     }, []);
