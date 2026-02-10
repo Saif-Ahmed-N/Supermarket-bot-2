@@ -334,6 +334,10 @@ export const useChatLogic = (user, dynamicCategories = []) => {
 
                 // 1. Fetch ALL products in the Parent Category from DB
                 const allCategoryProducts = await api.getProductsByCategory(parentCat);
+                console.log(`🔍 [Beverages Debug] Fetching category: "${parentCat}"`, {
+                    totalProducts: allCategoryProducts.length,
+                    subcategory: subLabel
+                });
 
                 // 2. Comprehensive Split Map
                 const masterSplitRules = {
@@ -477,19 +481,13 @@ export const useChatLogic = (user, dynamicCategories = []) => {
                     "Organic & Healthy Staples": ["organic", "healthy", "multigrain", "low carb", "diet"],
                     "Combo Packs & Value Deals": ["combo", "value", "deal", "pack", "save"],
 
-                    // Beverages Section (Updated to match DB subcategories)
-                    "Tea": ["tea", "chai", "green tea", "black tea", "tea bag", "leaf tea", "herbal tea", "masala tea"],
+                    // Beverages Section (Updated to match DB subcategories EXACTLY)
+                    "Tea": [" tea", "chai", "green tea", "black tea", "tea bag", "leaf tea", "herbal tea", "masala tea"],
                     "Coffee": ["coffee", "instant coffee", "filter coffee", "bru", "nescafe", "ground coffee", "davidoff", "levista", "cappuccino", "espresso", "mocha", "decaf"],
-                    "Health Drinks & Nutrition Beverages": ["health drink", "supplement", "horlicks", "boost", "bournvita", "complan", "pediasure", "nutrition", "protein drink", "ensure", "milo", "protinex"],
-                    "Soft Drinks & Sodas": ["soft drink", "soda", "cola", "pepsi", "coke", "thums up", "sprite", "fanta", "mirinda", "limca", "7up", "diet coke", "zero coke", "fizz", "carbonated"],
+                    "Health Drink, Supplement": ["health drink", "supplement", "horlicks", "boost", "bournvita", "complan", "pediasure", "nutrition", "protein drink", "ensure", "milo", "protinex"],
+                    "Energy & Soft Drinks": ["soft drink", "soda", "cola", "pepsi", "coke", "thums up", "sprite", "fanta", "mirinda", "limca", "7up", "diet coke", "zero coke", "fizz", "carbonated", "energy", "red bull", "monster", "sting", "gatorade", "glucon", "sports drink", "electrolyte", "kamikaze", "detox"],
                     "Fruit Juices & Drinks": ["juice", "fruit drink", "tropicana", "real juice", "b natural", "maaza", "frooti", "slice", "paper boat", "pulpy", "nectar", "fruit"],
-                    "Energy & Sports Drinks": ["energy", "red bull", "monster", "sting", "gatorade", "glucon", "sports drink", "electrolyte", "kamikaze", "detox"],
-                    "Milk-Based Beverages": ["milk drink", "buttermilk", "lassi", "milk shake", "cavins", "amul cool", "hershey's", "milkshake", "flavoured milk", "badam"],
-                    "Flavoured Water & Sparkling Drinks": ["flavoured water", "sparkling", "tonic", "perrier", "himalayan", "schweppes", "club soda"],
-                    "Instant Drink Mixes": ["drink mix", "tang", "rasna", "squash", "syrup", "gluco", "instant drink", "rooh afza", "powder"],
-                    "Traditional & Regional Drinks": ["traditional drink", "thandai", "aam panna", "kokum", "jaljeera", "neera", "regional drink", "sharbat"],
-                    "Iced Tea & Cold Coffee": ["iced tea", "cold coffee", "frappe", "lipton iced tea", "nescafe cold", "passion fruit"],
-                    "Water & Mineral Water": ["water", "mineral water", "bisleri", "kinley", "aquafina", "bailley", "himalayan water", "packaged water", "drinking water"]
+                    "Water": ["water", "mineral water", "bisleri", "kinley", "aquafina", "bailley", "himalayan water", "packaged water", "drinking water", "sparkling", "tonic", "perrier", "flavoured water"]
                 };
 
                 // 3. Filter and Classify
@@ -503,6 +501,13 @@ export const useChatLogic = (user, dynamicCategories = []) => {
                     const isLabelMatch = name.includes(subLabel.toLowerCase()) || subCat.includes(subLabel.toLowerCase());
 
                     return (isKeywordMatch || isLabelMatch) && product.category === parentCat;
+                });
+
+                console.log(`🔍 [Beverages Debug] Filtering results for "${subLabel}":`, {
+                    totalProductsInCategory: allCategoryProducts.length,
+                    matchedProducts: targetedProducts.length,
+                    keywords: masterSplitRules[subLabel]?.slice(0, 5) || [],
+                    sampleMatches: targetedProducts.slice(0, 3).map(p => ({ name: p.name, subCategory: p.subCategory }))
                 });
 
                 if (targetedProducts.length > 0) {
@@ -600,16 +605,10 @@ export const useChatLogic = (user, dynamicCategories = []) => {
                         subCats = [
                             { label: "Tea", icon: "☕", query: "tea chai" },
                             { label: "Coffee", icon: "☕", query: "coffee nescafe bru" },
-                            { label: "Health Drinks & Nutrition Beverages", icon: "💪", query: "health drink horlicks boost bournvita complan nutrition" },
-                            { label: "Soft Drinks & Sodas", icon: "🥤", query: "soft drink soda cola pepsi coke thums up sprite" },
+                            { label: "Health Drink, Supplement", icon: "💪", query: "health drink horlicks boost bournvita complan nutrition" },
+                            { label: "Energy & Soft Drinks", icon: "🥤", query: "soft drink soda cola pepsi coke energy red bull monster" },
                             { label: "Fruit Juices & Drinks", icon: "🧃", query: "juice fruit drink tropicana real maaza" },
-                            { label: "Energy & Sports Drinks", icon: "⚡", query: "energy drink red bull monster gatorade" },
-                            { label: "Milk-Based Beverages", icon: "🥛", query: "milk drink milkshake lassi buttermilk" },
-                            { label: "Flavoured Water & Sparkling Drinks", icon: "💧", query: "flavoured water sparkling tonic" },
-                            { label: "Instant Drink Mixes", icon: "🍹", query: "drink mix tang rasna squash syrup" },
-                            { label: "Traditional & Regional Drinks", icon: "🏺", query: "traditional drink thandai jaljeera regional" },
-                            { label: "Iced Tea & Cold Coffee", icon: "🧊", query: "iced tea cold coffee frappe" },
-                            { label: "Water & Mineral Water", icon: "🚰", query: "water mineral bisleri kinley" }
+                            { label: "Water", icon: "💧", query: "water mineral bisleri kinley" }
                         ];
                     } else if (categoryName === 'bakery, cakes & dairy') {
                         welcomeMsg = 'Select a Bakery, Cakes & Dairy section:';

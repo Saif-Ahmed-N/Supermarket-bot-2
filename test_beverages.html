@@ -1,0 +1,64 @@
+// Create a simple HTML test page to debug the beverages issue in browser console
+const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Beverages Debug Test</title>
+</head>
+<body>
+    <h1>Beverages Category Debug</h1>
+    <div id="output"></div>
+    
+    <script>
+        const BASE_URL = 'http://localhost:8000';
+        const output = document.getElementById('output');
+        
+        async function testBeverages() {
+            // Step 1: Get all beverages
+            const response = await fetch(\`\${BASE_URL}/products?category=Beverages&limit=500\`);
+            const allBeverages = await response.json();
+            
+            output.innerHTML += \`<h2>Total Beverages: \${allBeverages.length}</h2>\`;
+            
+            // Step 2: Test Coffee filter (matching frontend logic)
+            const subLabel = "Coffee";
+            const keywords = ["coffee", "instant coffee", "filter coffee", "bru", "nescafe", "ground coffee", "davidoff", "levista", "cappuccino", "espresso", "mocha", "decaf"];
+            
+            const coffeeProducts = allBeverages.filter(product => {
+                const name = (product.product || '').toLowerCase();
+                const subCat = (product.sub_category || '').toLowerCase();
+                
+                const isKeywordMatch = keywords.some(k => name.includes(k.toLowerCase()) || subCat.includes(k.toLowerCase()));
+                const isLabelMatch = name.includes(subLabel.toLowerCase()) || subCat.includes(subLabel.toLowerCase());
+                
+                return (isKeywordMatch || isLabelMatch) && product.category === 'Beverages';
+            });
+            
+            output.innerHTML += \`<h2>Coffee Products: \${coffeeProducts.length}</h2>\`;
+            output.innerHTML += '<ul>';
+            coffeeProducts.slice(0, 10).forEach(p => {
+                output.innerHTML += \`<li>\${p.product} - \${p.sub_category}</li>\`;
+            });
+            output.innerHTML += '</ul>';
+            
+            // Step 3: Show all subcategories
+            const subcats = {};
+            allBeverages.forEach(p => {
+                const sc = p.sub_category || 'Unknown';
+                subcats[sc] = (subcats[sc] || 0) + 1;
+            });
+            
+            output.innerHTML += '<h2>All Beverage Subcategories:</h2><ul>';
+            Object.entries(subcats).forEach(([name, count]) => {
+                output.innerHTML += \`<li>\${name}: \${count}</li>\`;
+            });
+            output.innerHTML += '</ul>';
+        }
+        
+        testBeverages();
+    </script>
+</body>
+</html>
+`;
+
+console.log(html);

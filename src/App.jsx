@@ -468,19 +468,19 @@ const ChatView = ({ user, onLogout }) => {
                             {msg.type === 'recipe_list' && <div className="mt-4 w-full flex gap-4 overflow-x-auto pb-4 px-1 scrollbar-hide">{msg.data.map(recipe => <RecipeCard key={recipe.id} recipe={recipe} onAdd={handleRecipeAdd} />)}</div>}
                             {msg.type === 'options' && <div className="flex flex-wrap gap-2 mt-3">{msg.data.map(opt => <button key={opt.id} onClick={() => handleOptionSelect(opt)} className="px-6 py-3 bg-white border-2 border-purple-100 rounded-xl text-sm font-bold text-purple-800 hover:border-purple-600 hover:text-purple-900 hover:shadow-md transition-all active:scale-[0.98]">{opt.label}</button>)}</div>}
                             {msg.type === 'carousel' && <div className="mt-4 w-full flex gap-4 overflow-x-auto pb-4 px-1 scrollbar-hide">{msg.data.map(p => <ProductCard key={p.id} product={p} />)}</div>}
-                            {msg.type === 'grid' && <div className="grid grid-cols-5 gap-x-3 gap-y-5 mt-4 w-full px-1">{categories.map(c => <button key={c.id} onClick={() => onSend(`Show ${c.label}`)} className="flex flex-col items-center gap-2 group active:scale-95 transition-all"><div className="w-16 h-16 rounded-2xl overflow-hidden bg-purple-50 border border-purple-100 shadow-sm group-hover:shadow-md group-hover:border-purple-400 transition-all flex items-center justify-center p-0.5"><SafeImage src={c.img} className="w-full h-full object-cover rounded-xl group-hover:scale-110 transition-transform duration-700" /></div><span className="text-[10px] font-bold text-purple-900 text-center leading-tight h-6 flex items-start justify-center overflow-hidden">{c.label}</span></button>)}</div>}
+                            {msg.type === 'grid' && <div className="grid grid-cols-5 gap-x-4 gap-y-6 mt-4 w-full px-1">{categories.map(c => <button key={c.id} onClick={() => onSend(`Show ${c.label}`)} className="flex flex-col items-center gap-3 group active:scale-95 transition-all"><div className="w-20 h-20 rounded-2xl overflow-hidden bg-purple-50 border border-purple-100 shadow-sm group-hover:shadow-md group-hover:border-purple-400 transition-all flex items-center justify-center p-0.5"><SafeImage src={c.img} className="w-full h-full object-cover rounded-xl group-hover:scale-110 transition-transform duration-700" /></div><span className="text-xs font-bold text-purple-900 text-center leading-tight h-7 flex items-start justify-center overflow-hidden">{c.label}</span></button>)}</div>}
                             {msg.type === 'sub_carousel' && (
-                                <div className="mt-4 w-full flex gap-3 overflow-x-auto pb-4 px-1 scrollbar-hide">
+                                <div className="grid grid-cols-5 gap-x-4 gap-y-6 mt-4 w-full px-1">
                                     {msg.data.map(c => (
                                         <button
                                             key={c.id}
                                             onClick={() => onSend(c.command)}
-                                            className="flex-shrink-0 w-32 h-36 rounded-2xl bg-white border border-purple-100 shadow-sm hover:shadow-md hover:border-purple-400 transition-all flex flex-col items-center justify-center p-3 text-center gap-3 active:scale-95"
+                                            className="flex flex-col items-center gap-3 group active:scale-95 transition-all"
                                         >
-                                            <div className="w-16 h-16 rounded-full overflow-hidden bg-purple-50 border border-purple-100 p-0.5 group-hover:bg-purple-100 transition-colors">
-                                                <SafeImage src={c.img} className="w-full h-full object-cover rounded-full" />
+                                            <div className="w-20 h-20 rounded-2xl overflow-hidden bg-purple-50 border border-purple-100 shadow-sm group-hover:shadow-md group-hover:border-purple-400 transition-all flex items-center justify-center p-0.5">
+                                                <SafeImage src={c.img} className="w-full h-full object-cover rounded-xl group-hover:scale-110 transition-transform duration-700" />
                                             </div>
-                                            <span className="text-purple-900 font-bold text-[11px] leading-tight h-8 flex items-center">{c.label}</span>
+                                            <span className="text-xs font-bold text-purple-900 text-center leading-tight h-7 flex items-start justify-center overflow-hidden">{c.label}</span>
                                         </button>
                                     ))}
                                 </div>
