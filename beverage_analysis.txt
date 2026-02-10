@@ -1,0 +1,42 @@
+Total Beverages in DB: 885
+
+Subcategories in DB:
+  - Coffee
+  - Energy & Soft Drinks
+  - Fruit Juices & Drinks
+  - Health Drink, Supplement
+  - Tea
+  - Water
+
+
+Sample beverage products:
+  - Coffee - Powder, Premium Special (sub_category: Coffee)
+  - Classic Coffee (sub_category: Coffee)
+  - This Mocha  3 In 1 Premix Instant Coffee (sub_category: Coffee)
+  - Passionately Black Tea With Passion Fruit - Iced Tea (sub_category: Energy & Soft Drinks)
+  - Kamikaze Shots (sub_category: Energy & Soft Drinks)
+  - Natural Hangover & Liver Detox Drink - Strawberry (sub_category: Energy & Soft Drinks)
+  - Soda - The Club (sub_category: Energy & Soft Drinks)
+  - Spyci  - Masala Maar Ke (sub_category: Energy & Soft Drinks)
+  - Soft Drink (sub_category: Energy & Soft Drinks)
+  - Original Soda Water (sub_category: Energy & Soft Drinks)
+  - Green Coffee (sub_category: Coffee)
+  - Classic Instant Coffee (sub_category: Coffee)
+  - Woddae Medium Dark Roast Ground Coffee - Whole Beans, Single Origin (sub_category: Coffee)
+  - Instant Coffee - Caramel Flavour (sub_category: Coffee)
+  - Instant Coffee - Choco Orange Flavour (sub_category: Coffee)
+  - Instant Coffee - Vanilla Flavour (sub_category: Coffee)
+  - Coffee Decoction - Ready to Use Filter, Eighty20 (sub_category: Coffee)
+  - Deccan Gold - Premium Filter Coffee, 80:20 Blend (sub_category: Coffee)
+  - Malgudi Filter Coffee - 60:40 (sub_category: Coffee)
+  - Sunrise Extra Sachet (sub_category: Coffee)
+  - Grand Coffee (sub_category: Coffee)
+  - Sunrise Coffee (sub_category: Coffee)
+  - Sunrise Instant Coffee - Chicory Mixture (sub_category: Coffee)
+  - Gold Cappuccino - Cafe Experience (sub_category: Coffee)
+  - Coffee - Grand (sub_category: Coffee)
+  - Instant Coffee - Gold (sub_category: Coffee)
+  - Coffee - Blended Beans, Espresso Bold Roasted (sub_category: Coffee)
+  - Freshly Roasted & Ground Filter Coffee Powder (sub_category: Coffee)
+  - 3-In-1 Coffee (sub_category: Coffee)
+  - Freshly Roasted & Ground Filter Coffee Powder With Chicory (sub_category: Coffee)

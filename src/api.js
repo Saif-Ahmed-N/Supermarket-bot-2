@@ -6,6 +6,7 @@ const mapProduct = (p) => ({
     name: p.product,
     baseName: p.product, // Simplified
     category: p.category,
+    subCategory: p.sub_category, // Added for filtering
     price: p.sale_price,
     originalPrice: p.market_price,
     image: p.image_url || ('https://placehold.co/400?text=' + encodeURIComponent(p.category)),
