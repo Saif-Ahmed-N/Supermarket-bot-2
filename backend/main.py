@@ -46,6 +46,71 @@ def read_categories(db: Session = Depends(database.get_db)):
     # Distinct categories
     return [r[0] for r in db.query(models.Product.category).distinct()]
 
+# ============= LangChain Chat Integration =============
+from pydantic import BaseModel
+from .llm_service import ChatbotLLMService
+from .llm_schemas import QueryType
+from .langchain_agents import create_agent
+
+# Initialize LLM service (singleton pattern)
+llm_service = None
+
+def get_llm_service():
+    global llm_service
+    if llm_service is None:
+        try:
+            llm_service = ChatbotLLMService()
+        except ValueError as e:
+            print(f"Warning: LLM service not initialized - {str(e)}")
+            return None
+    return llm_service
+
+class ChatQuery(BaseModel):
+    message: str = "User query to process"
+
+@app.post("/api/chat")
+def process_chat_query(query: ChatQuery, db: Session = Depends(database.get_db)):
+    """
+    Process user query using LangChain LLM and return structured response.
+    
+    Supports three types of queries:
+    1. PRICE_QUERY: What is the price of tomato?
+    2. CART_ADD: Add 5 tomatoes to the cart
+    3. CATEGORY_FILTER: Give me beauty products
+    
+    Returns JSON with query_type, action, and relevant data
+    """
+    
+    service = get_llm_service()
+    if service is None:
+        return {
+            "error": "LLM service not available",
+            "query_type": "UNKNOWN",
+            "message": "Chat service is temporarily unavailable. Please try the regular search."
+        }
+    
+    try:
+        # Get available categories and products for context
+        categories = [r[0] for r in db.query(models.Product.category).distinct().all()]
+        sample_products = [r[0] for r in db.query(models.Product.product).limit(30).all()]
+
+        # Create DB-aware agent and delegate the query
+        agent = create_agent(service, db, categories, sample_products)
+        agent_result = agent.run_query(query.message)
+
+        # Return agent result directly (already contains messages and product rows)
+        return agent_result
+    
+    except Exception as e:
+        print(f"Error in chat endpoint: {str(e)}")
+        return {
+            "error": str(e),
+            "query_type": "UNKNOWN",
+            "message": "An error occurred while processing your request. Please try again."
+        }
+
+# ======================================================
+
 @app.post("/orders", response_model=schemas.Order)
 def create_order(order: schemas.OrderCreate, db: Session = Depends(database.get_db)):
     db_order = models.Order(

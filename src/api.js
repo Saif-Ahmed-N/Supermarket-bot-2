@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:8000';
+const BASE_URL = 'http://localhost:8001';
 
 // Helper to map Backend DB structure to Frontend structure
 const mapProduct = (p) => ({
@@ -47,6 +47,26 @@ export const api = {
             return await res.json();
         } catch (e) {
             return [];
+        }
+    },
+
+
+    // 4. Chat - AI Powered
+    chat: async (message) => {
+        try {
+            const res = await fetch(`${BASE_URL}/api/chat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message })
+            });
+            if (!res.ok) throw new Error('Chat API failed');
+            return await res.json();
+        } catch (e) {
+            console.error("Chat failed:", e);
+            return {
+                query_type: 'UNKNOWN',
+                message: "Sorry, I'm having trouble connecting to the server. Please check your connection."
+            };
         }
     },
 
