@@ -50,3 +50,23 @@ class OrderItem(Base):
     image_url = Column(String)
 
     order = relationship("Order", back_populates="items")
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    mobile_number = Column(String, unique=True, index=True)
+    name = Column(String)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+class CartItem(Base):
+    __tablename__ = "cart_items"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String, index=True)
+    product_id = Column(Integer)
+    product_name = Column(String)
+    quantity = Column(Integer)
+    price = Column(Float)
+    weight = Column(String)
+    image_url = Column(String)

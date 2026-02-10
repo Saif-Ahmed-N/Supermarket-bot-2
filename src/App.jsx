@@ -7,6 +7,7 @@ import { api } from './api';
 import SafeImage from './components/ui/SafeImage';
 import ProductCard from './components/widgets/ProductCard';
 import DashboardWidget from './components/widgets/DashboardWidget';
+import Login from './components/Login';
 // --- IMPORT LOGO ---
 import logo from './assets/cosmocartt_logo.png';
 import categoryImages from './assets/categories.json';
@@ -303,27 +304,6 @@ const QuickActions = ({ onAction }) => (
     </div>
 );
 
-const LoginScreen = ({ onLogin }) => {
-    const [name, setName] = useState('');
-    const [id, setId] = useState('');
-    return (
-        <div className="flex-1 flex flex-col items-center justify-center bg-purple-50 relative">
-            <div className="w-full max-w-md bg-white p-10 rounded-2xl shadow-xl border border-purple-100">
-                <div className="mb-8 text-center">
-                    {/* LOGO REPLACEMENT */}
-                    <img src={logo} alt="CosmoCart Logo" className="w-56 mx-auto mb-4 drop-shadow-lg" />
-                    <h1 className="text-xl font-bold text-purple-900 tracking-tight hidden">CosmoCart</h1>
-                    <p className="text-purple-500 mt-2 font-medium">Please authenticate to continue</p>
-                </div>
-                <div className="space-y-5">
-                    <input className="w-full bg-purple-50 border border-purple-200 p-4 rounded-lg outline-none focus:border-purple-600 font-semibold text-purple-900 placeholder:text-purple-300" placeholder="First Name" value={name} onChange={e => setName(e.target.value)} />
-                    <input className="w-full bg-purple-50 border border-purple-200 p-4 rounded-lg outline-none focus:border-purple-600 font-semibold text-purple-900 placeholder:text-purple-300" placeholder="Member ID" value={id} onChange={e => setId(e.target.value)} />
-                    <button onClick={() => onLogin(name, id)} className="w-full py-4 bg-purple-900 text-white rounded-lg font-bold text-lg shadow-lg hover:bg-purple-950 transition-all flex items-center justify-center gap-2">Access Dashboard <ArrowRight size={20} /></button>
-                </div>
-            </div>
-        </div>
-    );
-};
 
 const ChatView = ({ user, onLogout }) => {
     const [categories, setCategories] = useState([]);
@@ -568,6 +548,6 @@ const ChatView = ({ user, onLogout }) => {
 
 export default function App() {
     const [user, setUser] = useState(null);
-    const handleLogin = (name, id) => { if (!name || !id) return alert('Please enter Name and ID'); setUser({ name, id }); };
-    return <CartProvider><AppWrapper>{!user ? <LoginScreen onLogin={handleLogin} /> : <ChatView user={user} onLogout={() => setUser(null)} />}</AppWrapper></CartProvider>;
+    const handleLogin = (name, id) => { setUser({ name, id }); };
+    return <AppWrapper>{!user ? <Login onLogin={handleLogin} /> : <CartProvider userId={user.id}><ChatView user={user} onLogout={() => setUser(null)} /></CartProvider>}</AppWrapper>;
 }

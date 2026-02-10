@@ -57,3 +57,34 @@ class Product(ProductBase):
 
     class Config:
         from_attributes = True
+
+class UserBase(BaseModel):
+    mobile_number: str
+    name: str
+
+class UserCreate(UserBase):
+    pass
+
+class User(UserBase):
+    id: int
+    created_at: datetime
+    class Config:
+        from_attributes = True
+
+class CartItemBase(BaseModel):
+    product_id: int
+    product_name: str
+    quantity: int
+    price: float
+    weight: Optional[str] = None
+    image_url: Optional[str] = None
+
+class CartItem(CartItemBase):
+    id: int
+    user_id: str
+    class Config:
+        from_attributes = True
+
+class CartSync(BaseModel):
+    user_id: str
+    items: List[CartItemBase]
