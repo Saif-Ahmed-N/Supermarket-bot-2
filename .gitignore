@@ -34,3 +34,7 @@ __pycache__/
 .env
 *.db
 info.txt
+backend/.venv/
+backend/test_write.txt
+backend/debug_log_utf8.txt
+backend/debug_output.txt

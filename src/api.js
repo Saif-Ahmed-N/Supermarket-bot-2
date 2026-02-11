@@ -55,6 +55,26 @@ export const api = {
         }
     },
 
+
+    // 4. Chat - AI Powered
+    chat: async (message) => {
+        try {
+            const res = await fetch(`${BASE_URL}/api/chat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message })
+            });
+            if (!res.ok) throw new Error('Chat API failed');
+            return await res.json();
+        } catch (e) {
+            console.error("Chat failed:", e);
+            return {
+                query_type: 'UNKNOWN',
+                message: "Sorry, I'm having trouble connecting to the server. Please check your connection."
+            };
+        }
+    },
+
     async createOrder(orderData) {
         try {
             const res = await fetch(`${BASE_URL}/orders`, {

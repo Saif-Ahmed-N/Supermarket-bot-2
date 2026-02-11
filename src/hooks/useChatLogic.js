@@ -318,9 +318,8 @@ export const useChatLogic = (user, dynamicCategories = []) => {
         }, 600);
     };
 
-    // --- 6. NLP BRAIN (ASYNC READY) ---
+    // --- 6. NLP BRAIN (LLM INTEGRATED) ---
     const processBotLogic = async (text) => {
-        let lower = text.toLowerCase().trim();
         setIsTyping(true);
 
         // Handle Sub-Category Selection (Strict Database Split)
@@ -519,59 +518,174 @@ export const useChatLogic = (user, dynamicCategories = []) => {
             return;
         }
 
-        setTimeout(async () => {
+        try {
+            // Call Backend LLM Service
+            const response = await api.chat(text);
             setIsTyping(false);
 
-            // A. IN-STORE NAVIGATION
-            if (lower.includes('where is') || lower.includes('find') || lower.includes('locate') || lower.includes('map')) {
-                const target = CATEGORIES.find(c => lower.includes(c.id) || lower.includes(c.label.toLowerCase().split(' ')[0]));
-                if (target) {
-                    addMsg('bot', `${target.label} is located in ${target.aisle}.`, 'map_view', { aisle: target.aisle, category: target.label });
+            if (!response.success && response.query_type === 'UNKNOWN') {
+                addMsg('bot', response.message);
+                if (response.suggestions) {
+                    addMsg('bot', "Try asking:", 'options', response.suggestions.map(s => ({ id: s, label: s })));
+                }
+                return;
+            }
+
+            // A. PRICE QUERY
+            if (response.query_type === 'PRICE_QUERY') {
+                const p = response.product;
+                const mappedProduct = {
+                    ...p,
+                    price: p.sale_price,
+                    image: p.image_url || ('https://placehold.co/400?text=' + encodeURIComponent(p.category))
+                };
+                addMsg('bot', response.message);
+                addMsg('bot', '', 'product_card', mappedProduct);
+            }
+
+            // B. CART ADD
+            else if (response.query_type === 'CART_ADD') {
+                const qtyToAdd = response.quantity || 1;
+
+                // Backend already resolved the product — use it directly if available
+                if (response.success && response.product) {
+                    const p = response.product;
+                    const product = {
+                        ...p,
+                        id: p.id,
+                        name: p.name,
+                        baseName: p.name,
+                        price: p.sale_price,
+                        perUnitSellingPrice: p.sale_price,
+                        perUnitOriginalPrice: p.market_price,
+                        brand: p.brand,
+                        isVeg: p.is_veg,
+                        unitType: p.unit_type,
+                        rating: p.rating,
+                        image: p.image_url || ('https://placehold.co/400?text=' + encodeURIComponent(p.category || 'Product'))
+                    };
+
+                    // Handle weight logic if returned by LLM
+                    if (response.weight && (product.unitType === 'kg' || product.unitType === 'l')) {
+                        product.selectedWeight = response.weight;
+                    }
+
+                    // Update Cart
+                    const variantId = `${product.id}-${product.selectedWeight || 'std'}`;
+                    const existingItem = cart.find(c => `${c.id}-${c.selectedWeight}` === variantId);
+                    updateQuantity(product, (existingItem ? existingItem.quantity : 0) + qtyToAdd);
+
+                    addMsg('bot', `Added ${qtyToAdd}x ${product.name} to your cart.`, 'success');
                 } else {
-                    addMsg('bot', 'Here is the store directory:', 'map_view', { aisle: 'Entrance', category: 'You are here' });
+                    // Fallback: search by product name from response
+                    const queryName = response.product?.name || response.product_name || 'the item';
+                    const matches = await api.searchProducts(queryName);
+                    const validMatches = dietMode === 'veg' ? matches.filter(p => p.isVeg) : matches;
+
+                    if (validMatches.length > 0) {
+                        const product = validMatches[0];
+                        if (response.weight && (product.unitType === 'kg' || product.unitType === 'l')) {
+                            product.selectedWeight = response.weight;
+                        }
+
+                        const variantId = `${product.id}-${product.selectedWeight || 'std'}`;
+                        const existingItem = cart.find(c => `${c.id}-${c.selectedWeight}` === variantId);
+                        updateQuantity(product, (existingItem ? existingItem.quantity : 0) + qtyToAdd);
+
+                        addMsg('bot', `Added ${qtyToAdd}x ${product.name} to your cart.`, 'success');
+                    } else {
+                        addMsg('bot', `I understood you want ${queryName}, but I couldn't find it in stock.`, 'error');
+                    }
                 }
-                return;
             }
 
-            // B. COMPARISON
-            if (lower.includes('compare')) {
-                const tokens = lower.split(' ');
-                // Simple search for first 2 tokens that return results
-                const foundProducts = [];
-                for (const t of tokens) {
-                    if (t.length < 3) continue;
-                    const matches = await api.searchProducts(t);
-                    if (matches.length > 0) foundProducts.push(matches[0]);
-                    if (foundProducts.length >= 2) break;
-                }
+            // C. CATEGORY FILTER
+            else if (response.query_type === 'CATEGORY_FILTER') {
+                const products = response.products.map(p => ({
+                    ...p,
+                    id: p.id,
+                    name: p.name,
+                    baseName: p.name, // CRITICAL: ProductCard expects baseName
+                    price: p.sale_price,
+                    perUnitSellingPrice: p.sale_price,
+                    perUnitOriginalPrice: p.market_price,
+                    brand: p.brand,
+                    isVeg: p.is_veg,
+                    unitType: p.unit_type,
+                    rating: p.rating,
+                    image: p.image_url || ('https://placehold.co/400?text=' + encodeURIComponent(p.category))
+                }));
+                addMsg('bot', response.message);
+                addMsg('bot', '', 'carousel', products);
+            }
 
-                if (foundProducts.length === 2) {
-                    addMsg('bot', `Comparison View: ${foundProducts[0].name} vs ${foundProducts[1].name}`, 'comparison_card', foundProducts);
-                    return;
+            // C2. PRODUCT SEARCH (show all brands of a specific product)
+            else if (response.query_type === 'PRODUCT_SEARCH') {
+                if (response.products && response.products.length > 0) {
+                    const products = response.products.map(p => ({
+                        ...p,
+                        id: p.id,
+                        name: p.name,
+                        baseName: p.name,
+                        price: p.sale_price,
+                        perUnitSellingPrice: p.sale_price,
+                        perUnitOriginalPrice: p.market_price,
+                        brand: p.brand,
+                        isVeg: p.is_veg,
+                        unitType: p.unit_type,
+                        rating: p.rating,
+                        image: p.image_url || ('https://placehold.co/400?text=' + encodeURIComponent(p.category || 'Product'))
+                    }));
+                    addMsg('bot', response.message);
+                    addMsg('bot', '', 'carousel', products);
+                } else {
+                    addMsg('bot', response.message || "No products found matching your search.");
                 }
             }
 
-            // C. RECIPES
-            if (lower.includes('recipe') || lower.includes('cook') || lower.includes('dinner') || lower.includes('meal')) {
-                addMsg('bot', 'Here are some premium meal kits available:', 'recipe_list', RECIPES);
-                return;
+            // C3. PRICE FILTER (show products above/below a price)
+            else if (response.query_type === 'PRICE_FILTER') {
+                if (response.products && response.products.length > 0) {
+                    const products = response.products.map(p => ({
+                        ...p,
+                        id: p.id,
+                        name: p.name,
+                        baseName: p.name,
+                        price: p.sale_price,
+                        perUnitSellingPrice: p.sale_price,
+                        perUnitOriginalPrice: p.market_price,
+                        brand: p.brand,
+                        isVeg: p.is_veg,
+                        unitType: p.unit_type,
+                        rating: p.rating,
+                        image: p.image_url || ('https://placehold.co/400?text=' + encodeURIComponent(p.category || 'Product'))
+                    }));
+                    addMsg('bot', response.message);
+                    addMsg('bot', '', 'carousel', products);
+                } else {
+                    addMsg('bot', response.message || "No products found in the specified price range.");
+                }
             }
 
             // D. CHECKOUT
-            if (lower.includes('checkout') || lower.includes('proceed') || lower.includes('buy now')) {
-                handleOptionSelect({ id: 'checkout_now', label: 'Checkout' });
-                return;
+            else if (response.query_type === 'CHECKOUT') {
+                addMsg('bot', response.message);
+                // Simulate selecting the 'checkout_now' option to trigger existing flow
+                setTimeout(() => handleOptionSelect({ id: 'checkout_now', label: 'Checkout' }), 500);
             }
 
-            // E. SUPPORT
-            if (lower.includes('help') || lower.includes('support')) {
-                addMsg('bot', 'How can we assist you?', 'options', [
-                    { id: 'support_faq', label: 'View FAQs' },
-                    { id: 'support_call', label: 'Call Customer Care' }
-                ]);
-                return;
+            // D. FALLBACK / UNKNOWN handled above
+            else {
+                addMsg('bot', response.message || "I'm not sure how to help with that.");
             }
 
+            // --- LLM Success Check ---
+            if (response.success && response.query_type !== 'UNKNOWN') {
+                return; // Already handled by LLM logic above
+            }
+
+            // --- Fallback to Manual Logic (F. through J.) ---
+            const lower = text.toLowerCase();
             // F. CATEGORY NAVIGATION
             const matchedCategory = activeCategories.find(c =>
                 lower.includes(c.id) || lower.includes(c.label.toLowerCase())
@@ -812,7 +926,6 @@ export const useChatLogic = (user, dynamicCategories = []) => {
             }
 
             // I. HISTORY
-            // I. HISTORY
             if (lower.includes('history') || lower.includes('last order')) {
                 const history = await api.getOrders(user.id || 'guest');
                 if (history.length > 0) {
@@ -839,7 +952,11 @@ export const useChatLogic = (user, dynamicCategories = []) => {
             } else {
                 addMsg('bot', "I couldn't find that item. Please try a department:", 'grid');
             }
-        }, 600);
+        } catch (err) {
+            console.error(err);
+            setIsTyping(false);
+            addMsg('bot', "Sorry, I'm having trouble connecting to my brain right now.");
+        }
     };
 
     const handleUserMessage = (text) => {
