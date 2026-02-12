@@ -1,4 +1,4 @@
-import csv
+import json
 import os
 from sqlalchemy import create_engine, Column, Integer, String, Float, Text, Boolean, text
 from sqlalchemy.ext.declarative import declarative_base
@@ -37,52 +37,65 @@ class Product(Base):
     expiry_date = Column(String, index=True)
     stock = Column(Integer, default=0)
 
-CSV_FILE_PATH = r"c:\Users\saleh\OneDrive\Desktop\cosmocartt\cleaned_products_dataset.csv"
+# MOVED: Now pointing to JSON file
+JSON_FILE_PATH = r"c:\Users\Acer\Desktop\Supermarket-bot-2\mock_products.json"
 
 def migrate():
+    # Ensure tables exist (for fresh DB)
+    Base.metadata.create_all(bind=engine)
+    
     db = SessionLocal()
     try:
-        print("--- COMMENCING STANDALONE DATABASE MIGRATION ---")
+        print("--- COMMENCING STANDALONE DATABASE MIGRATION (JSON MODE) ---")
         
         # 1. Update schema
-        print("Applying SQL schema updates...")
-        with engine.connect() as conn:
-            conn.execute(text("ALTER TABLE products_v2 ADD COLUMN IF NOT EXISTS packed_date VARCHAR;"))
-            conn.execute(text("ALTER TABLE products_v2 ADD COLUMN IF NOT EXISTS expiry_date VARCHAR;"))
-            conn.execute(text("ALTER TABLE products_v2 ADD COLUMN IF NOT EXISTS stock INTEGER DEFAULT 0;"))
-            # Ensure index is there
-            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_products_v2_packed_date ON products_v2 (packed_date);"))
-            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_products_v2_expiry_date ON products_v2 (expiry_date);"))
-            conn.commit()
+        print("Applying SQL schema updates... SKIPPED (Handled by create_all)")
+        # with engine.connect() as conn:
+        #     conn.execute(text("ALTER TABLE products_v2 ADD COLUMN IF NOT EXISTS packed_date VARCHAR;"))
+        #     conn.execute(text("ALTER TABLE products_v2 ADD COLUMN IF NOT EXISTS expiry_date VARCHAR;"))
+        #     conn.execute(text("ALTER TABLE products_v2 ADD COLUMN IF NOT EXISTS stock INTEGER DEFAULT 0;"))
+        #     # Ensure index is there
+        #     conn.execute(text("CREATE INDEX IF NOT EXISTS ix_products_v2_packed_date ON products_v2 (packed_date);"))
+        #     conn.execute(text("CREATE INDEX IF NOT EXISTS ix_products_v2_expiry_date ON products_v2 (expiry_date);"))
+        #     conn.commit()
         
         # 2. Clear data
         print("Clearing existing products...")
-        db.execute(text("TRUNCATE TABLE products_v2 RESTART IDENTITY CASCADE"))
+        # Try TRUNCATE first (faster for Postgres), fallback to DELETE if it fails (e.g. SQLite)
+        try:
+            db.execute(text("TRUNCATE TABLE products_v2 RESTART IDENTITY CASCADE"))
+        except Exception:
+            db.rollback()
+            print("TRUNCATE failed, using DELETE FROM...")
+            db.execute(text("DELETE FROM products_v2"))
+        
         db.commit()
         
         # 3. Import
-        print(f"Reading {CSV_FILE_PATH}...")
-        with open(CSV_FILE_PATH, mode='r', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
+        print(f"Reading {JSON_FILE_PATH}...")
+        with open(JSON_FILE_PATH, mode='r', encoding='utf-8') as f:
+            data = json.load(f)
             count = 0
             batch = []
             
-            for row in reader:
+            print(f"Found {len(data)} items in JSON file.")
+            
+            for row in data:
                 try:
                     product = Product(
-                        product=row['product_name'],
-                        brand=row['brand'],
-                        category=row['category'],
-                        sub_category=row['sub_category'],
-                        market_price=float(row['market_price']) if row['market_price'] else 0.0,
-                        sale_price=float(row['sale_price']) if row['sale_price'] else 0.0,
-                        packed_date=row['packed_date'],
-                        expiry_date=row['expiry_date'],
-                        rating=float(row['ratings']) if row['ratings'] else 0.0,
-                        image_url=row['image_url'],
-                        stock=int(row['stock']) if row['stock'] else 0,
+                        product=row.get('product_name'),
+                        brand=row.get('brand'),
+                        category=row.get('category'),
+                        sub_category=row.get('sub_category'),
+                        market_price=float(row.get('market_price', 0.0)),
+                        sale_price=float(row.get('sale_price', 0.0)),
+                        packed_date=row.get('packed_date'),
+                        expiry_date=row.get('expiry_date'),
+                        rating=float(row.get('ratings', 0.0)),
+                        image_url=row.get('image_url'),
+                        stock=int(row.get('stock', 0)),
                         type="General",
-                        description=f"{row['product_name']} by {row['brand']}",
+                        description=f"{row.get('product_name')} by {row.get('brand')}",
                         weight_str="Standard", # Fallback
                         unit_type="pcs" # Fallback
                     )
@@ -104,6 +117,10 @@ def migrate():
         
         print(f"--- SUCCESS: {count} PRODUCTS IMPORTED ---")
         
+        # Verification
+        row_count = db.execute(text("SELECT COUNT(*) FROM products_v2")).scalar()
+        print(f"VERIFICATION: Total rows in products_v2 table: {row_count}")
+
     except Exception as e:
         print(f"CRITICAL ERROR: {e}")
         db.rollback()
