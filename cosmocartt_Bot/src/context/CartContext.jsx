@@ -63,7 +63,7 @@ export const CartProvider = ({ children, userId }) => {
               quantity: item.quantity,
               price: item.price,
               weight: item.weight,
-              image_url: item.image_url
+              image: item.image_url
             }));
             setCart(loadedCart);
           }
@@ -94,7 +94,7 @@ export const CartProvider = ({ children, userId }) => {
                 quantity: item.quantity,
                 price: item.price,
                 weight: item.weight,
-                image_url: item.image_url
+                image_url: item.image
               }))
             })
           });

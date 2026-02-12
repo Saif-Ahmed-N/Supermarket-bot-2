@@ -206,7 +206,58 @@ export const useChatLogic = (user, dynamicCategories = []) => {
                 addMsg('bot', 'Please select a department:', 'grid');
             }
             else if (option.action === 'Show Last Order') {
-                addMsg('bot', `Please check 'Order History' tab for details.`);
+                addMsg('bot', 'How would you like to view your history?', 'options', [
+                    { id: 'view_last_order', label: 'View Last Order' },
+                    { id: 'view_all_orders', label: 'Previous Orders' }
+                ]);
+            }
+            else if (option.id === 'view_last_order') {
+                if (!user || !user.id) {
+                    addMsg('bot', 'Please log in to view your order history.');
+                    return;
+                }
+                (async () => {
+                    try {
+                        const orders = await api.getOrders(user.id);
+                        if (orders && orders.length > 0) {
+                            const lastOrder = orders[0];
+                            const historyItems = lastOrder.items.map(i => ({
+                                id: i.product_id,
+                                name: i.product_name,
+                                price: i.price,
+                                image: i.image_url,
+                                quantity: i.quantity
+                            }));
+                            const essentials = await api.searchProducts('milk') || [];
+                            addMsg('bot', `Here is your last order from ${new Date(lastOrder.created_at).toLocaleDateString()}:`, 'dashboard', {
+                                history: historyItems,
+                                essentials: essentials.slice(0, 5)
+                            });
+                        } else {
+                            addMsg('bot', `You haven't placed any orders yet.`);
+                        }
+                    } catch (err) {
+                        addMsg('bot', "I couldn't fetch your order history.");
+                    }
+                })();
+            }
+            else if (option.id === 'view_all_orders') {
+                if (!user || !user.id) {
+                    addMsg('bot', 'Please log in to view your order history.');
+                    return;
+                }
+                (async () => {
+                    try {
+                        const orders = await api.getOrders(user.id);
+                        if (orders && orders.length > 0) {
+                            addMsg('bot', `I found ${orders.length} previous orders for you:`, 'order_history', orders);
+                        } else {
+                            addMsg('bot', 'You have no order history yet.');
+                        }
+                    } catch (err) {
+                        addMsg('bot', "Error loading order history.");
+                    }
+                })();
             }
             else if (option.action === 'View Cart') {
                 setIsCartOpen(true);
@@ -355,6 +406,14 @@ export const useChatLogic = (user, dynamicCategories = []) => {
         }
 
         const lower = text.toLowerCase();
+
+        // MANUAL OVERRIDE: Checkout
+        if (lower.includes('checkout') || lower.includes('place order')) {
+            setIsTyping(false);
+            handleOptionSelect({ id: 'checkout_now', label: 'Checkout' });
+            return;
+        }
+
         // F. CATEGORY NAVIGATION (Manual Override)
         const matchedCategory = activeCategories.find(c =>
             lower.includes(c.id) || lower.includes(c.label.toLowerCase())
@@ -683,5 +742,26 @@ export const useChatLogic = (user, dynamicCategories = []) => {
         }, 400);
     };
 
-    return { messages, isTyping, isListening, startListening, handleUserMessage, addMsg, initializeChat, handleOptionSelect, handleTableConfirm, handleRecipeAdd };
+    // --- 7. HANDLE REORDER ---
+    const handleReorder = (order) => {
+        order.items.forEach(item => {
+            const product = {
+                id: item.product_id,
+                name: item.product_name,
+                baseName: item.product_name, // fallback
+                price: item.price,
+                image: item.image_url,
+                selectedWeight: item.weight || 'std',
+                unitType: item.weight && (item.weight.includes('kg') || item.weight.includes('g')) ? 'kg' : 'other', // guesstimate
+            };
+            // Find if it exists to get current quantity
+            const variantId = `${product.id}-${product.selectedWeight}`;
+            const existing = cart.find(c => `${c.id}-${c.selectedWeight}` === variantId);
+            updateQuantity(product, (existing ? existing.quantity : 0) + item.quantity);
+        });
+        showToast(`Added ${order.items.length} items from Order #${order.id}`, 'success');
+        setIsCartOpen(true);
+    };
+
+    return { messages, isTyping, isListening, startListening, handleUserMessage, addMsg, initializeChat, handleOptionSelect, handleTableConfirm, handleRecipeAdd, handleReorder };
 };
