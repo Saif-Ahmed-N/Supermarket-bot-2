@@ -17,11 +17,11 @@ import re
 import json
 import requests
 from dotenv import load_dotenv
+from pathlib import Path
 
-from llm_schemas import BotResponse, QueryType
-from utils import find_similar_products, match_or_suggest
-
-load_dotenv()
+# Explicitly load .env from the same directory as this file
+env_path = Path(__file__).parent / ".env"
+load_dotenv(dotenv_path=env_path)
 
 
 class ChatbotLLMService:

@@ -53,7 +53,7 @@ The AI Chat interface for customers.
     ```bash
     npm install
     ```
-3.  Start development server:
+3.  Start development server
     ```bash
     npm run dev
     ```

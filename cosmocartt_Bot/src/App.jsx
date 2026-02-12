@@ -333,6 +333,42 @@ const OrderPreviewTable = ({ initialItems, onConfirm }) => {
     );
 };
 
+// --- 4. NEW WIDGET: ORDER HISTORY LIST ---
+const OrderHistoryWidget = ({ orders, onReorder }) => (
+    <div className="flex flex-col gap-4 w-full mt-2">
+        {orders.map(order => (
+            <div key={order.id} className="bg-white border border-purple-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex justify-between items-start mb-2">
+                    <div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-purple-500 uppercase tracking-wide">Order #{order.id}</span>
+                            <span className={`px-2 py-0.5 text-[8px] font-bold rounded-full uppercase ${order.status === 'Completed' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>{order.status}</span>
+                        </div>
+                        <p className="text-xs font-semibold text-slate-500 mt-0.5">{new Date(order.created_at).toLocaleDateString()} • {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                    </div>
+                    <span className="font-extrabold text-purple-900">₹{order.total_amount.toLocaleString()}</span>
+                </div>
+                <div className="flex gap-2 overflow-x-auto pb-2 mb-3 scrollbar-hide">
+                    {order.items.slice(0, 5).map((item, idx) => (
+                        <div key={idx} className="relative w-10 h-10 flex-shrink-0">
+                            <SafeImage src={item.image_url} className="w-full h-full rounded-md object-cover border border-purple-100" />
+                            <span className="absolute -bottom-1 -right-1 bg-purple-900 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">{item.quantity}</span>
+                        </div>
+                    ))}
+                    {order.items.length > 5 && (
+                        <div className="w-10 h-10 flex items-center justify-center bg-purple-50 text-purple-400 text-xs font-bold rounded-md border border-purple-100 shrink-0">
+                            +{order.items.length - 5}
+                        </div>
+                    )}
+                </div>
+                <button onClick={() => onReorder(order)} className="w-full py-2 border border-purple-200 rounded-lg text-purple-700 text-xs font-bold hover:bg-purple-50 hover:border-purple-300 transition-all flex items-center justify-center gap-2">
+                    <ShoppingBag size={12} /> Reorder This Order
+                </button>
+            </div>
+        ))}
+    </div>
+);
+
 // --- QUICK ACTIONS BAR ---
 const QuickActions = ({ onAction }) => (
     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide w-full px-6 pt-2 border-t border-purple-100 bg-purple-50/50">
@@ -353,7 +389,7 @@ const QuickActions = ({ onAction }) => (
 
 const ChatView = ({ user, onLogout }) => {
     const [categories, setCategories] = useState([]);
-    const { messages, isTyping, isListening, startListening, handleUserMessage, initializeChat, handleOptionSelect, handleTableConfirm, handleRecipeAdd } = useChatLogic(user, categories); // Pass categories
+    const { messages, isTyping, isListening, startListening, handleUserMessage, initializeChat, handleOptionSelect, handleTableConfirm, handleRecipeAdd, handleReorder } = useChatLogic(user, categories); // Pass categories
 
     useEffect(() => {
         api.getCategories().then(cats => {
@@ -541,6 +577,7 @@ const ChatView = ({ user, onLogout }) => {
                                 </div>
                             )}
                             {msg.type === 'dashboard' && <DashboardWidget historyItems={msg.data.history} essentialItems={msg.data.essentials} />}
+                            {msg.type === 'order_history' && <OrderHistoryWidget orders={msg.data} onReorder={handleReorder} />}
                         </div>
                     </div>
                 ))}
