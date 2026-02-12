@@ -23,6 +23,9 @@ from pathlib import Path
 env_path = Path(__file__).parent / ".env"
 load_dotenv(dotenv_path=env_path)
 
+from llm_schemas import BotResponse
+from utils import match_or_suggest, find_similar_products
+
 
 class ChatbotLLMService:
     def __init__(self, provider: str = None, temperature: float = 0.3):
