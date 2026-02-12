@@ -38,7 +38,7 @@ class Product(Base):
     stock = Column(Integer, default=0)
 
 # MOVED: Now pointing to JSON file
-JSON_FILE_PATH = r"c:\Users\Acer\Desktop\Supermarket-bot-2\mock_products.json"
+JSON_FILE_PATH = r"c:\Users\Acer\Desktop\Supermarket-bot-2\cosmocartt_Bot\mock_products.json"
 
 def migrate():
     # Ensure tables exist (for fresh DB)

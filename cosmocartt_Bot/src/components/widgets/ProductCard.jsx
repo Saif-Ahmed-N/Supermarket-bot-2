@@ -1,5 +1,5 @@
 // src/components/widgets/ProductCard.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Minus, Star } from 'lucide-react';
 import SafeImage from '../ui/SafeImage';
 import { useCart } from '../../context/CartContext';
@@ -9,6 +9,13 @@ const ProductCard = ({ product, onClick }) => {
 
     const defaultWeight = product.unitType === 'kg' ? '1kg' : (product.unitType === 'l' ? '1L' : 'Pack');
     const [selectedWeight, setSelectedWeight] = useState(defaultWeight);
+
+    // DEBUG: Log the product image to console
+    useEffect(() => {
+        if (product && product.image) {
+            // console.log(`ProductCard [${product.id}]:`, product.image);
+        }
+    }, [product]);
 
     // --- VARIANT MATCHING FIX ---
     // We must find the specific variant in the cart to show correct quantity
