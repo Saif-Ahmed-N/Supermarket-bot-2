@@ -394,6 +394,13 @@ export const useChatLogic = (user, dynamicCategories = []) => {
                         }));
 
                         addMsg('bot', `Found ${mapped.length} items for ${subLabel}:`, 'product_grid', mapped);
+
+                        // DISCOVER MORE OPTION
+                        setTimeout(() => {
+                            addMsg('bot', "Looking for something else?", 'options', [
+                                { id: 'discover_more', label: '✨ Discover More', action: 'Show Categories' }
+                            ]);
+                        }, 800);
                     } else {
                         addMsg('bot', `No matching items found for ${subLabel} in our ${parentCat} department.`, 'text');
                     }
@@ -444,6 +451,13 @@ export const useChatLogic = (user, dynamicCategories = []) => {
             // Fallback: Show all products
             const productsInCategory = await api.getProductsByCategory(matchedCategory.label);
             addMsg('bot', `Browsing ${matchedCategory.label}:`, 'carousel', productsInCategory);
+
+            // DISCOVER MORE OPTION
+            setTimeout(() => {
+                addMsg('bot', "Want to see other departments?", 'options', [
+                    { id: 'discover_more', label: '✨ Discover More', action: 'Show Categories' }
+                ]);
+            }, 800);
             return;
         }
 
@@ -546,6 +560,13 @@ export const useChatLogic = (user, dynamicCategories = []) => {
                 }));
                 addMsg('bot', response.message);
                 addMsg('bot', '', 'carousel', products);
+
+                // DISCOVER MORE OPTION
+                setTimeout(() => {
+                    addMsg('bot', "Not what you're looking for?", 'options', [
+                        { id: 'discover_more', label: '✨ Discover More', action: 'Show Categories' }
+                    ]);
+                }, 1000);
             }
 
             // C2. PRODUCT SEARCH (show all brands of a specific product)
@@ -567,6 +588,13 @@ export const useChatLogic = (user, dynamicCategories = []) => {
                     }));
                     addMsg('bot', response.message);
                     addMsg('bot', '', 'carousel', products);
+
+                    // DISCOVER MORE OPTION
+                    setTimeout(() => {
+                        addMsg('bot', "Widen your search?", 'options', [
+                            { id: 'discover_more', label: '✨ Discover More', action: 'Show Categories' }
+                        ]);
+                    }, 1000);
                 } else {
                     addMsg('bot', response.message || "No products found matching your search.");
                 }
@@ -591,6 +619,13 @@ export const useChatLogic = (user, dynamicCategories = []) => {
                     }));
                     addMsg('bot', response.message);
                     addMsg('bot', '', 'carousel', products);
+
+                    // DISCOVER MORE OPTION
+                    setTimeout(() => {
+                        addMsg('bot', "Try other categories?", 'options', [
+                            { id: 'discover_more', label: '✨ Discover More', action: 'Show Categories' }
+                        ]);
+                    }, 1000);
                 } else {
                     addMsg('bot', response.message || "No products found in the specified price range.");
                 }
